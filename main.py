@@ -1,12 +1,12 @@
 from flask import Flask, render_template, request, redirect, url_for, jsonify
 import psycopg2
+import os
 
 app = Flask(__name__)
 
 
 def get_db_connection():
-    conn = psycopg2.connect(database="postgres", user="postgres",
-                            password="aftaab", host="127.0.0.1", port="5432")
+    conn = psycopg2.connect(database=os.environ['DATABASE_URL'])
     return conn
 
 @app.route('/')
@@ -34,6 +34,22 @@ def add_proctor_cred():
 @app.route('/admin/login')
 def admin_login():
     return render_template('admin_login_page.html')
+
+@app.route('/auth/proctor', methods=['POST'])
+def auth_proctor():
+
+    email_entered = request.form.get('email')
+    pass_entered = request.form.get('passward')
+
+    q_chk_pass = "SELECT password for ProctorCredentials where proctor_id=%(proctor_id)s"
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute(q_chk_pass, {'proctor_id': email_entered})
+    password = cursor.fetchone()[0]
+    if pass_entered == password:
+        return jsonify({'error': False})
+    else:
+        return jsonify({'error': True})
 
 
 @app.route('/admin', methods=['GET'])
@@ -89,4 +105,4 @@ if __name__ == '__main__':
         cursor.execute(q)
     conn.commit()
     conn.close()
-    app.run(debug=True)
+    # app.run(debug=True)
