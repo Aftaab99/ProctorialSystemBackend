@@ -6,12 +6,15 @@ app = Flask(__name__)
 
 
 def get_db_connection():
-    conn = psycopg2.connect(database=os.environ['DATABASE_URL'])
+    conn = psycopg2.connect(database="dfpqqefj777q4p", user="kktimoofiemaue",
+                            password="cdabbc31fb60189e193c2f1a75bf5c78244fc2879950c0adb81a3269d6362b15", host="ec2-54-221-215-228.compute-1.amazonaws.com", port="5432")
     return conn
+
 
 @app.route('/')
 def hello():
     return "Index page"
+
 
 @app.route('/admin/add_proctor_cred', methods=['POST'])
 def add_proctor_cred():
@@ -31,13 +34,14 @@ def add_proctor_cred():
         conn.close()
         return jsonify({'error': True})
 
+
 @app.route('/admin/login')
 def admin_login():
     return render_template('admin_login_page.html')
 
+
 @app.route('/auth/proctor', methods=['POST'])
 def auth_proctor():
-
     email_entered = request.form.get('email')
     pass_entered = request.form.get('passward')
 
@@ -61,17 +65,15 @@ def admin():
     cursor.execute(q_faculty_details)
     fne = cursor.fetchall()
     cursor.execute(q_proctor_ids)
-    proctor_ids =cursor.fetchall()
+    proctor_ids = cursor.fetchall()
     proctor_ids = [a[0] for a in proctor_ids]
     conn.close()
     print(fne)
-    faculty_data = [(fname,fid,fid in proctor_ids) for fname, fid in fne]
+    faculty_data = [(fname, fid, fid in proctor_ids) for fname, fid in fne]
     print(faculty_data)
     print(proctor_ids)
-    
+
     return render_template('admin_page.html', faculty_data=faculty_data)
-
-
 
 
 @app.route('/admin/checkpassword', methods=['POST'])
@@ -89,8 +91,8 @@ def checkpassword():
     else:
         return jsonify({'error': True})
 
-if __name__ == '__main__':
 
+if __name__ == '__main__':
     conn = get_db_connection()
     cursor = conn.cursor()
     print("Database opened successfully")
@@ -105,4 +107,4 @@ if __name__ == '__main__':
         cursor.execute(q)
     conn.commit()
     conn.close()
-    # app.run(debug=True)
+    app.run(debug=True)
