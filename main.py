@@ -7,7 +7,8 @@ app = Flask(__name__)
 
 def get_db_connection():
     conn = psycopg2.connect(database="dfpqqefj777q4p", user="kktimoofiemaue",
-                            password="cdabbc31fb60189e193c2f1a75bf5c78244fc2879950c0adb81a3269d6362b15", host="ec2-54-221-215-228.compute-1.amazonaws.com", port="5432")
+                            password="cdabbc31fb60189e193c2f1a75bf5c78244fc2879950c0adb81a3269d6362b15",
+                            host="ec2-54-221-215-228.compute-1.amazonaws.com", port="5432")
     return conn
 
 
@@ -92,19 +93,18 @@ def checkpassword():
         return jsonify({'error': True})
 
 
-if __name__ == '__main__':
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    print("Database opened successfully")
-    with open('queries/create_query.sql') as query_file:
-        q = query_file.read()
-        cursor.execute(q)
-    with open('queries/add_department_data.sql') as query_file:
-        q = query_file.read()
-        cursor.execute(q)
-    with open('queries/add_faculty_data.sql') as query_file:
-        q = query_file.read()
-        cursor.execute(q)
-    conn.commit()
-    conn.close()
-    app.run(debug=True)
+conn = get_db_connection()
+cursor = conn.cursor()
+print("Database opened successfully")
+with open('queries/create_query.sql') as query_file:
+    q = query_file.read()
+    cursor.execute(q)
+with open('queries/add_department_data.sql') as query_file:
+    q = query_file.read()
+    cursor.execute(q)
+with open('queries/add_faculty_data.sql') as query_file:
+    q = query_file.read()
+    cursor.execute(q)
+conn.commit()
+conn.close()
+# app.run(debug=True)
