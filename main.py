@@ -6,16 +6,70 @@ app = Flask(__name__)
 
 
 def get_db_connection():
-    conn = psycopg2.connect(database="dfpqqefj777q4p", user="kktimoofiemaue",
-                            password="cdabbc31fb60189e193c2f1a75bf5c78244fc2879950c0adb81a3269d6362b15",
-                            host="ec2-54-221-215-228.compute-1.amazonaws.com", port="5432")
+    conn = psycopg2.connect(database="postgres", user="postgres",
+                            password="aftaab",
+                            host="localhost", port="5432")
     return conn
 
+
+@app.route('/admin/main_page')
+def main_page():
+    conn = get_db_connection()
+    cursor =  conn.cursor()
+    n_faculty_q = "SELECT count(*) from faculty"
+    cursor.execute(n_faculty_q)
+    n_faculty = cursor.fetchone()[0]
+
+    n_dept_q = "SELECT count(*) from department"
+    cursor.execute(n_dept_q)
+    n_dept = cursor.fetchone()[0]
+ 
+
+    n_proctor_q = "SELECT count(faculty_id) from Faculty where faculty_id in (select distinct proctor_id from ProctorCredentials)"
+    cursor.execute(n_proctor_q)
+    n_proctor = cursor.fetchone()[0]
+
+    n_student_q = "SELECT count(*) from Student"
+    cursor.execute(n_student_q)
+    n_student = cursor.fetchone()[0]
+    conn.close()
+
+    return render_template('admin_main_page.html', dc=n_dept, fc=n_faculty, pc=n_proctor, sc=n_student)
 
 @app.route('/')
 def hello():
     return "Index page"
 
+
+@app.route('/admin/department/remove:<dept_id>', methods=['POST'])
+def remove_department(dept_id):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    remove_query = "DELETE FROM Department where department_id=%(department_id)s"
+    cursor.execute(remove_query, {'department_id': remove_dept_id})
+    return {'error': False}
+
+
+@app.route('/admin/department')
+def manage_department():
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    depts_q = "SELECT department_name,department_id from department"
+    cursor.execute(depts_q)
+    departments = cursor.fetchall()
+
+    conn.close()
+
+    return render_template('manage_department.html', depts=departments)
+
+@app.route('/admin/faculty')
+def manage_faculty():
+    return render_template('add_department.html', depts=['ISE', 'CSE'])
+
+@app.route('/admin/student')
+def manage_student():
+    return render_template('add_department.html', depts=['ISE', 'CSE'])
 
 @app.route('/admin/add_proctor_cred', methods=['POST'])
 def add_proctor_cred():
@@ -93,18 +147,19 @@ def checkpassword():
         return jsonify({'error': True})
 
 
-conn = get_db_connection()
-cursor = conn.cursor()
-print("Database opened successfully")
-with open('queries/create_query.sql') as query_file:
-    q = query_file.read()
-    cursor.execute(q)
-with open('queries/add_department_data.sql') as query_file:
-    q = query_file.read()
-    cursor.execute(q)
-with open('queries/add_faculty_data.sql') as query_file:
-    q = query_file.read()
-    cursor.execute(q)
-conn.commit()
-conn.close()
-# app.run(debug=True)
+if __name__=='__main__':
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    print("Database opened successfully")
+    with open('queries/create_query.sql') as query_file:
+        q = query_file.read()
+        cursor.execute(q)
+    with open('queries/add_department_data.sql') as query_file:
+        q = query_file.read()
+        cursor.execute(q)
+    with open('queries/add_faculty_data.sql') as query_file:
+        q = query_file.read()
+        cursor.execute(q)
+    conn.commit()
+    conn.close()
+    app.run(debug=True)
