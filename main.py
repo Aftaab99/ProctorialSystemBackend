@@ -41,13 +41,34 @@ def hello():
     return "Index page"
 
 
-@app.route('/admin/department/remove:<dept_id>', methods=['POST'])
-def remove_department(dept_id):
+@app.route('/admin/department/remove', methods=['POST'])
+def remove_department():
     conn = get_db_connection()
     cursor = conn.cursor()
+    dept_id = request.form.get('dept_id')
     remove_query = "DELETE FROM Department where department_id=%(department_id)s"
-    cursor.execute(remove_query, {'department_id': remove_dept_id})
+    cursor.execute(remove_query, {'department_id': dept_id})
+    print(cursor.rowcount)
+    conn.commit()
+    conn.close()
     return {'error': False}
+
+@app.route('/admin/department/add', methods=['POST'])
+def add_department():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    dept_id = request.form.get('dept_id')
+    dept_id = dept_id.upper()
+    dept_name = request.form.get('dept_name')
+    add_query = "INSERT INTO Department VALUES(%(dept_id)s, %(dept_name)s)"
+    try:
+        cursor.execute(add_query, {'dept_id': dept_id, 'dept_name': dept_name})
+        conn.commit()
+        conn.close()
+        return jsonify({'error':False})
+    except:
+        conn.close()
+        return jsonify({'error':True})
 
 
 @app.route('/admin/department')

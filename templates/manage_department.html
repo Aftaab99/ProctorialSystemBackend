@@ -11,6 +11,8 @@
         integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
     <link href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet"
         integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous">
+
+
     <title>Admin login</title>
 </head>
 
@@ -22,20 +24,35 @@
             </div>
         </div>
         <div class="container mt-5 center">
-            <ul class="list-group">
+            <ul class="list-group" id="deptlist">
                 {% for dn,did in depts:%}
-                <li class="list-group-item">
+                <li class="list-group-item" id="{{ did }}">
                     <div class="row">
 
-                        <div class="col-md-10 col-sm-10 mt-sm-2">{{dn}}</div>
-                        <div class="col-md- col-sm-1 mt-sm-2 text-center"><button class="btn btn-primary" value="{{did}}" onclick="edit_btn_clicked(this.value)"><i class="fa fa-pencil text-white"></i></button></div>
-                        <div class="col-md-1 col-sm-1 mt-sm-2 text-center"><button class="btn btn-primary" value="{{did}}" onclick="remove_btn_clicked(this.value)"><i class="fa fa-trash-o text-white"></i></button></div>
+                        <div class="col-md-11 col-sm-11 mt-sm-2">{{dn}}</div>
+                        <div class="col-md-1 col-sm-1 mt-sm-2 text-center"><button class="btn btn-primary"
+                                value="{{did}}" onclick="remove_btn_clicked(this.value)"><i
+                                    class="fa fa-trash-o text-white"></i></button></div>
                     </div>
                 </li>
-
-
-                {% endfor %}
             </ul>
+
+            {% endfor %}
+            <div class="row mt-4">
+                <div class="col-6">
+                    <input type="text" class="form-control col-12" id="add-dept-name" placeholder="Department name">
+                </div>
+                <div class="col-3">
+                    <input type="text" class="form-control col-12" id="add-dept-id" placeholder="Abbr.(Eg ISE)">
+                </div>
+                <div class="col-3"> <button class="btn btn-primary col-12" id="add-dept-btn">Add</button>
+                </div>
+
+            </div>
+            <div class="row mt-2 text-center">
+                <div class="col-12" id="add-result"></div>
+            </div>
+
 
 
 
