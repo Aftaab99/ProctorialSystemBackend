@@ -16,3 +16,16 @@ This starts a server listening at `http://localhost:5000/`. Clicking on the link
 Departments route is at `http://localhost:5000/admin/department`.
 
 All html files need to placed inside the `templates` direcctory. All JS in `static/js`. Check out some of the HTML files for how to link the JS files.
+
+## Git commands
+From inside the clone of your forked directory, run this in your clone before making changes
+    
+    git checkout development
+
+Then push your changes
+
+    git add .
+    git commit -m 'What changes you made'
+    git push origin development
+
+Then headover to your forked repo on Github, click new pull request and create new pull request.
