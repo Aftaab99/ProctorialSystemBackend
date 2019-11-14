@@ -1,15 +1,12 @@
 $(document).ready(() => {
 
     remove_btn_clicked = (i) => {
-        console.log(i)
         $.ajax({
             url: '/admin/department/remove',
             type: 'POST',
             data: { dept_id: i },
             success: (res) => {
                 $("#" + i).remove();
-                console.log('Removed')
-
             },
             dataType: 'json'
         })
@@ -20,8 +17,6 @@ $(document).ready(() => {
         let dept_name = $('#add-dept-name').val();
         let dept_id = $('#add-dept-id').val();
         dept_id = dept_id.toUpperCase();
-        console.log(dept_name)
-        console.log(dept_id)
         let result = $('#add-result')
         if (dept_name == "") {
             result.text("Department name empty");

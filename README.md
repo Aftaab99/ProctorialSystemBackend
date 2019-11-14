@@ -7,6 +7,7 @@ Make sure python3 is installed, then install requirements using
     pip install -r requirements.txt
 
 To start the server run,
+
     python main.py
 
 This starts a server listening at `http://localhost:5000/`. Clicking on the link should take you to a empty index page. Head over to `http://localhost:5000/admin/login` to login with the admin password. 

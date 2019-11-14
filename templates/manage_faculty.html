@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+        integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <link href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet"
+        integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous">
+
+
+    <title>Admin login</title>
+</head>
+
+<body>
+    <div class="container">
+        <div class="row">
+            <div class="col-12 text-center mt-5">
+                <h2>Manage faculty</h2>
+            </div>
+        </div>
+        <div class="container mt-5 center">
+
+
+            <ul class="list-group" id="factlist">
+                <li class="list-group-item">
+                    <div class="row mb-2">
+                        <div class="col-4"><strong>Name</strong></div>
+                        <div class="col-4"><strong>Email</strong></div>
+                        <div class="col-3"><strong>Department</strong></div>
+
+                    </div>
+                </li>
+
+                {% for fn,fid,dept,fide in faculties:%}
+                <li class="list-group-item" id="{{fide}}">
+                    <div class="row">
+
+                        <div class="col-4 mt-sm-2">{{fn}}</div>
+                        <div class="col-4 mt-sm-2">{{fid}}
+                        </div>
+                        <div class="col-3 mt-sm-2">{{dept}}</div>
+                        <div class="col-1 mt-sm-2">
+                            <button class="btn btn-primary" value="{{fide}}" onclick="remove_btn_clicked(this.value)"><i
+                                    class="fa fa-trash-o text-white"></i></button>
+                        </div>
+                    </div>
+                </li>
+            </ul>
+
+            {% endfor %}
+            <div class="row mt-4">
+                <div class="col-4">
+                    <input type="text" class="form-control col-12" id="add-fact-name" placeholder="Faculty name">
+                </div>
+                <div class="col-4">
+                    <input type="email" class="form-control col-12" id="add-fact-id" placeholder="Email">
+                </div>
+                <div class="col-2">
+                    <select class="form-control col-12" id="add-fact-dept">
+                        {% for dabbr in dept_abbr: %}
+                        <option value={{dabbr}}>{{dabbr}}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-2"> <button class="btn btn-primary col-12" id="add-fact-btn">Add</button>
+                </div>
+
+            </div>
+            <div class="row mt-2 text-center mb-5">
+                <div class="col-12" id="add-result"></div>
+            </div>
+
+
+
+
+
+        </div>
+
+    </div>
+
+
+    <!-- Optional JavaScript -->
+
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"
+        integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
+        integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
+        crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
+        integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
+        crossorigin="anonymous"></script>
+    <script src="{{ url_for('static', filename='js/md5.min.js') }}"></script>
+
+    <script src="{{ url_for('static', filename='js/manage_faculty.js') }}" type="text/javascript"></script>
+</body>
+
+</html>
