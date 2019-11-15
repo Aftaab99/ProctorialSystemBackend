@@ -17,6 +17,11 @@
 <body>
     <div class="container">
         <div class="row">
+            <div class="col-12 text-right mt-5">
+                <a href="/admin/logout"><button class="btn btn-primary" id="logout"><i class="fa fa-power-off"></i> Logout</button></a>
+            </div>
+        </div>
+        <div class="row">
             <div class="col-12 text-center mt-5">
                 <h2>Manager users</h2>
             </div>
@@ -27,18 +32,18 @@
                     <div class="card-body">
                         <h5 class="card-title">Departments</h5>
                         <p class="card-text">Current department count is {{dc}}. </p>
-                        <a href="#" class="card-link">Manage departments</a>
+                        <a href="/admin/department" class="card-link">Manage departments</a>
                     </div>
                 </div>
             </div>
             <div class="col-md-4 col-sm-12 mt-sm-2">
                 <div class="card">
                     <div class="card-body">
-                        <h5 class="card-title">Faculty and students</h5>
+                        <h5 class="card-title">Faculty and proctors</h5>
                         <p class="card-text">Current faculty count is {{fc}}.<br>
                             Current proctor count is {{pc}}. </p>
-                        <a href="#" class="card-link">Manage faculties</a>
-                        <a href="#" class="card-link">Manage students</a>
+                        <a href="/admin/faculty" class="card-link">Manage faculties</a>
+                        <a href="/admin/proctor" class="card-link">Manage proctors</a>
                     </div>
                 </div>
             </div>
@@ -48,7 +53,7 @@
                     <div class="card-body">
                         <h5 class="card-title">Students</h5>
                         <p class="card-text">Current student count is {{sc}}. </p>
-                        <a href="#" class="card-link">Manage students</a>
+                        <a href="/admin/student" class="card-link">Manage students</a>
                     </div>
                 </div>
             </div>

@@ -5,22 +5,23 @@ $(document).ready(() => {
 
     console.log('Ready')
     $('#submit_btn').click((event) => {
-
+        console.log('CLicked')
         event.preventDefault();
         let password = $('#password').val();
         let hashed_password = md5(password);
         $.ajax({
             type: 'POST',
-            url: '/admin/checkpassword',
+            url: '/admin/login',
             data: { 'password': hashed_password },
             dataType: 'json',
         }).done((res) => {
+            console.log('Sent')
             if (res.error == true) {
                 $('#form-error').show();
+            }else{
+                window.location.href='/admin';
             }
-            else if (res.error == false) {
-                window.location = '/admin';
-            }
+
         });
 
 

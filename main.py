@@ -1,4 +1,6 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, url_for, redirect
+from flask_login import LoginManager, UserMixin, login_required, login_user, logout_user
+
 import psycopg2
 
 app = Flask(__name__)
@@ -15,9 +17,9 @@ def get_db_connection():
     return conn
 
 
-@app.route("/admin/main_page")
+@app.route("/admin")
+@login_required
 def main_page():
-    conn = get_db_connection()
     cursor = conn.cursor()
     n_faculty_q = "SELECT count(*) from faculty"
     cursor.execute(n_faculty_q)
@@ -34,7 +36,6 @@ def main_page():
     n_student_q = "SELECT count(*) from Student"
     cursor.execute(n_student_q)
     n_student = cursor.fetchone()[0]
-    conn.close()
 
     return render_template(
         "admin_main_page.html", dc=n_dept, fc=n_faculty, pc=n_proctor, sc=n_student
@@ -47,15 +48,14 @@ def hello():
 
 
 @app.route("/admin/department/remove", methods=["POST"])
+@login_required
 def remove_department():
-    conn = get_db_connection()
     cursor = conn.cursor()
     dept_id = request.form.get("dept_id")
     remove_query = "DELETE FROM Department where department_id=%(department_id)s"
     cursor.execute(remove_query, {"department_id": dept_id})
     print(cursor.rowcount)
     conn.commit()
-    conn.close()
     return {"error": False}
 
 
@@ -65,9 +65,9 @@ def replace_last_occurence(s, s1, s2):
 
 
 @app.route("/admin/faculty/remove", methods=["POST"])
+@login_required
 def remove_faculty():
 
-    conn = get_db_connection()
     cursor = conn.cursor()
     fid = request.form.get("fid")
     fid = replace_last_occurence(fid, "__at__", "@")
@@ -77,13 +77,12 @@ def remove_faculty():
     cursor.execute(remove_query, {"fid": fid})
     print(cursor.rowcount)
     conn.commit()
-    conn.close()
     return {"error": False}
 
 
 @app.route("/admin/faculty/add", methods=["POST"])
+@login_required
 def add_faculty():
-    conn = get_db_connection()
     cursor = conn.cursor()
     fid = request.form.get("fid")
     fname = request.form.get("fname")
@@ -95,16 +94,14 @@ def add_faculty():
     try:
         cursor.execute(add_query, {"fid": fid, "fname": fname, "dept_id": dept_id})
         conn.commit()
-        conn.close()
         return jsonify({"error": False, "dept_name": dname})
     except:
-        conn.close()
         return jsonify({"error": True})
 
 
 @app.route("/admin/department/add", methods=["POST"])
+@login_required
 def add_department():
-    conn = get_db_connection()
     cursor = conn.cursor()
     dept_id = request.form.get("dept_id")
     dept_name = request.form.get("dept_name")
@@ -112,57 +109,147 @@ def add_department():
     try:
         cursor.execute(add_query, {"dept_id": dept_id, "dept_name": dept_name})
         conn.commit()
-        conn.close()
         return jsonify({"error": False})
     except:
-        conn.close()
         return jsonify({"error": True})
 
 
 @app.route("/admin/department")
+@login_required
 def manage_department():
 
-    conn = get_db_connection()
     cursor = conn.cursor()
     depts_q = "SELECT department_name,department_id from department"
     cursor.execute(depts_q)
     departments = cursor.fetchall()
 
-    conn.close()
-
     return render_template("manage_department.html", depts=departments)
 
 
-@app.route("/admin/student")
-def manage_student():
-    return render_template("add_department.html", depts=["ISE", "CSE"])
-
-
 @app.route("/admin/add_proctor_cred", methods=["POST"])
+@login_required
 def add_proctor_cred():
     email = request.form.get("email")
     password = request.form.get("password")
-    conn = get_db_connection()
     q_add_cred = "INSERT INTO ProctorCredentials VALUES(%(proctor_id)s, %(password)s) ON CONFLICT(proctor_id) DO UPDATE SET password=%(password)s"
     cursor = conn.cursor()
     try:
         cursor.execute(q_add_cred, {"proctor_id": email, "password": password})
         conn.commit()
-        conn.close()
         return jsonify({"error": False})
     except Exception as e:
         print(e)
         conn.commit()
-        conn.close()
         return jsonify({"error": True})
 
 
-@app.route("/admin/login")
+@app.route("/admin/student/remove", methods=["POST"])
+@login_required
+def remove_student():
+    usn = request.form.get("usn")
+    delete_q = "DELETE FROM Student WHERE student_usn=%(usn)s"
+    cursor = conn.cursor()
+    cursor.execute(delete_q, {"usn": usn})
+    conn.commit()
+    return jsonify({"error": False})
+
+
+@app.route("/admin/student/add", methods=["POST"])
+@login_required
+def add_student():
+
+    fname = request.form.get("fname")
+    mname = request.form.get("mname")
+    lname = request.form.get("lname")
+    usn = request.form.get("usn")
+    stud_email = request.form.get("stud_email")
+    stud_phone = request.form.get("stud_phone")
+    join_year = int(request.form.get("join_year"))
+    grad_year = int(request.form.get("grad_year"))
+    dept_id = request.form.get("dept_id")
+    quota = request.form.get("quota").upper()
+    parent_email = request.form.get("parent_email")
+    parent_phone = request.form.get("parent_phone")
+    parent_name = request.form.get("parent_name")
+
+    cursor = conn.cursor()
+    try:
+        add_student = """INSERT INTO Student VALUES(%(usn)s, %(fname)s, %(mname)s, %(lname)s,
+                                                    %(join_year)s, %(grad_year)s, %(quota)s, 
+                                                    %(stud_email)s, %(stud_phone)s,
+                                                    %(dept_id)s)"""
+        cursor.execute(
+            add_student,
+            {
+                "usn": usn,
+                "fname": fname,
+                "mname": mname,
+                "lname": lname,
+                "join_year": join_year,
+                "grad_year": grad_year,
+                "quota": quota,
+                "stud_email": stud_email,
+                "stud_phone": stud_phone,
+                "dept_id": dept_id,
+            },
+        )
+        conn.commit()
+
+        add_parent = "INSERT INTO Parent VALUES(%(stud_usn)s, %(parent_name)s, %(parent_phone)s, %(parent_email)s) ON CONFLICT DO NOTHING"
+        cursor.execute(
+            add_parent,
+            {
+                "parent_name": parent_name,
+                "stud_usn": usn,
+                "parent_phone": parent_phone,
+                "parent_email": parent_email,
+            },
+        )
+        conn.commit()
+        return jsonify({"error": False})
+    except Exception as e:
+        print(e)
+        return jsonify({"error": True})
+
+
+@app.route("/admin/student")
+@login_required
+def manage_student():
+    stud_data_q = "SELECT student_usn, CONCAT(first_name, ' ', middle_name,' ', last_name), department_id from Student"
+    cursor = conn.cursor()
+    cursor.execute(stud_data_q)
+    stud_data = cursor.fetchall()
+    get_deptids_q = "SELECT department_id FROM Department"
+    cursor.execute(get_deptids_q)
+    deptid_list = cursor.fetchall()
+    deptid_list = [d[0] for d in deptid_list]
+    print(deptid_list)
+    return render_template(
+        "manage_student.html", stud_data=stud_data, deptid_list=deptid_list
+    )
+
+
+@app.route("/admin/login", methods=["GET", "POST"])
 def admin_login():
-    return render_template("admin_login_page.html")
+    if request.method == "GET":
+        for _ in range(15):
+            print("YO")
+
+        return render_template("admin_login_page.html")
+
+    entered_password = request.form.get("password")
+    print(entered_password)
+    if entered_password == users["admin"]["password"]:
+        user = User()
+        user.id = "admin"
+        login_user(user)
+        return jsonify({"error": False})
+
+    return jsonify({"error": True})
 
 
 @app.route("/auth/proctor", methods=["POST"])
+@login_required
 def auth_proctor():
     email_entered = request.form.get("email")
     pass_entered = request.form.get("passward")
@@ -170,7 +257,6 @@ def auth_proctor():
     q_chk_pass = (
         "SELECT password for ProctorCredentials where proctor_id=%(proctor_id)s"
     )
-    conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute(q_chk_pass, {"proctor_id": email_entered})
     password = cursor.fetchone()[0]
@@ -181,8 +267,8 @@ def auth_proctor():
 
 
 @app.route("/admin/faculty")
+@login_required
 def manage_faculty():
-    conn = get_db_connection()
     cursor = conn.cursor()
     fact_details_q = "SELECT name,faculty_id,department_name,REPLACE(REPLACE(faculty_id, '@', '__at__'), '.', '__dot__') from Faculty f,Department d where f.department_id=d.department_id"
     cursor.execute(fact_details_q)
@@ -193,25 +279,29 @@ def manage_faculty():
     dept_abbr = cursor.fetchall()
     dept_abbr = [d[0] for d in dept_abbr]
     print(dept_abbr)
-    conn.close()
 
     return render_template(
         "manage_faculty.html", faculties=faculties, dept_abbr=dept_abbr
     )
 
 
-@app.route("/admin", methods=["GET"])
+@app.route("/admin/logout")
+def logout():
+    logout_user()
+    return redirect("/admin/login")
+
+
+@app.route("/admin/proctor", methods=["GET"])
+@login_required
 def admin():
     q_faculty_details = "SELECT name, faculty_id from Faculty"
     q_proctor_ids = "SELECT distinct proctor_id from ProctorCredentials"
-    conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute(q_faculty_details)
     fne = cursor.fetchall()
     cursor.execute(q_proctor_ids)
     proctor_ids = cursor.fetchall()
     proctor_ids = [a[0] for a in proctor_ids]
-    conn.close()
     print(fne)
     faculty_data = [(fname, fid, fid in proctor_ids) for fname, fid in fne]
     print(faculty_data)
@@ -220,39 +310,38 @@ def admin():
     return render_template("admin_page.html", faculty_data=faculty_data)
 
 
-@app.route("/admin/checkpassword", methods=["POST"])
-def checkpassword():
-    entered_password = request.form.get("password")
+app.config[
+    "SECRET_KEY"
+] = '\x94\x94d"\xf0/\xa4j\xa7\xc7\xa2;\x1aOEp\xb3\xf1\xc3%v+W\xdd'
+login_manager = LoginManager()
+login_manager.init_app(app)
 
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute("SELECT admin_password from Admin")
-    hashed_password = cursor.fetchone()[0]
-    print(entered_password)
-    print(hashed_password)
-    if entered_password == hashed_password:
-        return jsonify({"error": False})
-    else:
-        return jsonify({"error": True})
+conn = get_db_connection()
+cursor = conn.cursor()
+with open("queries/create_query.sql") as query_file:
+    q = query_file.read()
+    cursor.execute(q)
+conn.commit()
+
+admin_pass_q = "SELECT admin_password FROM ADMIN"
+cursor.execute(admin_pass_q)
+admin_password = cursor.fetchone()[0]
+
+users = {"admin": {"password": admin_password}}
 
 
-if __name__ == "__main__":
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    assert (
-        replace_last_occurence("shivshankar__at__dayanandasagar.com", "__at__", "@")
-        == "shivshankar@dayanandasagar.com"
-    )
-    print("Database opened successfully")
-    with open("queries/create_query.sql") as query_file:
-        q = query_file.read()
-        cursor.execute(q)
-    with open("queries/add_department_data.sql") as query_file:
-        q = query_file.read()
-        cursor.execute(q)
-    with open("queries/add_faculty_data.sql") as query_file:
-        q = query_file.read()
-        cursor.execute(q)
-    conn.commit()
-    conn.close()
-    app.run(debug=True)
+class User(UserMixin):
+    pass
+
+
+@login_manager.user_loader
+def user_loader(user_id):
+    if user_id not in users:
+        return
+
+    user = User()
+    user.id = user_id
+    return user
+
+
+app.run(debug=True)

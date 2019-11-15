@@ -2,7 +2,7 @@ CREATE TABLE IF NOT EXISTS Department(department_id VARCHAR(15) PRIMARY KEY, dep
 
 CREATE TABLE IF NOT EXISTS Student(student_usn VARCHAR(10) CHECK (student_usn ~ '^[0-9][A-Z]{2}[0-9]{2}[A-Z]{2}[0-9]{3}') PRIMARY KEY,first_name VARCHAR(20), middle_name VARCHAR(20), last_name VARCHAR(20), joining_year NUMERIC(4), expected_graduation_year NUMERIC(4), quota VARCHAR(15) CHECK(quota in ('CET', 'COMED-K', 'MANAGEMENT')), email_id VARCHAR(320), phone_NUMERIC NUMERIC(10), department_id VARCHAR(15) REFERENCES Department(department_id) ON DELETE CASCADE);
 
-CREATE TABLE IF NOT EXISTS Parent(parent_id VARCHAR(15) PRIMARY KEY, student_usn VARCHAR(15) REFERENCES Student(student_usn) ON DELETE CASCADE, first_name VARCHAR(20), middle_name VARCHAR(20), last_name VARCHAR(20), contact_NUMERIC NUMERIC(10), email_id VARCHAR(320));
+CREATE TABLE IF NOT EXISTS Parent(student_usn VARCHAR(15) REFERENCES Student(student_usn) ON DELETE CASCADE, name VARCHAR(50), contact_NUMERIC NUMERIC(10) PRIMARY KEY, email_id VARCHAR(320));
 
 CREATE TABLE IF NOT EXISTS Faculty(faculty_id VARCHAR(320) PRIMARY KEY, name VARCHAR(50), department_id VARCHAR(15) REFERENCES Department(department_id) ON DELETE CASCADE);
 
