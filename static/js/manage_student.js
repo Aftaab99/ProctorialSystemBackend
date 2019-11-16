@@ -14,13 +14,18 @@ $(document).ready(() => {
         })
     }
 
-    
+    $('#dob').datepicker({
+        format: 'dd/mm/yyyy'
+    });
+
+
 
     $("#add_new_student").click((e) => {
         let fname = $('#fname').val();
         let mname = $('#mname').val();
         let lname = $('#lname').val();
         let usn = $('#student_usn').val();
+        let dob = $('#dob').val();
         let student_email = $('#student_email').val().toLowerCase();
         let student_phone = $('#student_phone').val();
         let join_year = $('#join_year').val();
@@ -29,7 +34,7 @@ $(document).ready(() => {
         let dept_id = $('#dept_id').val();
         let parent_name = $('#parent_name').val();
         let parent_email = $('#parent_email').val();
-        console.log('Parent_email='+parent_email)
+        console.log('Parent_email=' + parent_email)
         let parent_phone = $('#parent_phone').val();
         var email_regex = /^(([^<>()\[\]\.,;:\s@\"]+(\.[^<>()\[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i;
         console.log(email_regex.test(student_email));
@@ -43,6 +48,11 @@ $(document).ready(() => {
         }
         else if (fname == "") {
             result.text("First name required");
+            result.removeAttr('class')
+            result.attr('class', 'col-12 text-danger');
+        }
+        else if (dob == "") {
+            result.text("Date of birth invalid");
             result.removeAttr('class')
             result.attr('class', 'col-12 text-danger');
         }
@@ -77,16 +87,16 @@ $(document).ready(() => {
             result.removeAttr('class')
             result.attr('class', 'col-12 text-danger');
         }
-        else if (parent_name=="") {
+        else if (parent_name == "") {
             result.text("Parent name empty");
             result.removeAttr('class')
             result.attr('class', 'col-12 text-danger');
         }
-        
+
         else {
             console.log('Cool!')
             result.text("");
-            
+
             // let dept_id=$('#add-fact-dept').val()
             // let fact_id_esc = replace_last_occurence(fact_id, '@', '__at__')
             // fact_id_esc = replace_last_occurence(fact_id_esc, '.', '__dot__')
@@ -94,7 +104,7 @@ $(document).ready(() => {
             $.ajax({
                 url: '/admin/student/add',
                 type: 'POST',
-                data: {fname:fname, lname:lname, mname:mname, dept_id:dept_id, usn:usn, join_year:join_year, grad_year:grad_year, student_email:student_email, student_phone:student_phone, quota:quota, parent_name:parent_name, parent_email:parent_email, parent_phone:parent_phone},
+                data: { fname: fname, lname: lname, mname: mname, dept_id: dept_id, usn: usn, dob: dob, join_year: join_year, grad_year: grad_year, student_email: student_email, student_phone: student_phone, quota: quota, parent_name: parent_name, parent_email: parent_email, parent_phone: parent_phone },
                 dataType: 'json',
                 success: (res) => {
                     if (!res.error) {
@@ -104,7 +114,7 @@ $(document).ready(() => {
                         $('#studlist').append(`
                         <li class="list-group-item" id="${usn}">
                         <div class="row">
-                            <div class="col-4">${fname+" "+mname+" "+lname}</div>
+                            <div class="col-4">${fname + " " + mname + " " + lname}</div>
                             <div class="col-4">${usn}</div>
                             <div class="col-2">${dept_id}</div>
                             <div class="col-2">

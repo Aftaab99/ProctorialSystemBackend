@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, jsonify, url_for, redirect
 from flask_login import LoginManager, UserMixin, login_required, login_user, logout_user
-
+import datetime
 import psycopg2
 
 app = Flask(__name__)
@@ -162,6 +162,7 @@ def add_student():
     mname = request.form.get("mname")
     lname = request.form.get("lname")
     usn = request.form.get("usn")
+    dob = request.form.get("dob")
     stud_email = request.form.get("stud_email")
     stud_phone = request.form.get("stud_phone")
     join_year = int(request.form.get("join_year"))
@@ -171,13 +172,14 @@ def add_student():
     parent_email = request.form.get("parent_email")
     parent_phone = request.form.get("parent_phone")
     parent_name = request.form.get("parent_name")
+    dob = datetime.datetime.strptime(dob, "%d/%m/%Y")
 
     cursor = conn.cursor()
     try:
         add_student = """INSERT INTO Student VALUES(%(usn)s, %(fname)s, %(mname)s, %(lname)s,
                                                     %(join_year)s, %(grad_year)s, %(quota)s, 
                                                     %(stud_email)s, %(stud_phone)s,
-                                                    %(dept_id)s)"""
+                                                    %(dept_id)s, %(dob)s)"""
         cursor.execute(
             add_student,
             {
@@ -191,6 +193,7 @@ def add_student():
                 "stud_email": stud_email,
                 "stud_phone": stud_phone,
                 "dept_id": dept_id,
+                "dob": dob,
             },
         )
         conn.commit()
@@ -308,6 +311,42 @@ def admin():
     print(proctor_ids)
 
     return render_template("admin_page.html", faculty_data=faculty_data)
+
+
+@app.route("/app/get_students", methods=["POST"])
+def get_students():
+    faculty_id = request.form.get("faculty_id")
+    fetch_students_q = "SELECT student_usn, CONCAT(first_name,' ',middle_name,' ',lname),department_id FROM Student WHERE student_usn IN (SELECT student_usn from Proctor where proctor_id=%(proctor_id)s)"
+    cursor = conn.cursor()
+    cursor.execute(fetch_students_q, {"proctor_id": faculty_id})
+    student_data = cursor.fetchall()
+    student_data = [{"usn": usn, "name": name} for usn, name in student_data]
+    return student_data
+
+
+@app.route("/app/get_all_students", methods=["POST"])
+def get_all_students():
+    fetch_all_usns = "SELECT student_usn from Student"
+    cursor = conn.cursor()
+    cursor.execute(fetch_all_usns)
+    usn_list = cursor.fetchall()
+    usn_list = [usn[0] for usn in usn_list]
+    return usn_list
+
+
+@app.route("/app/add_student_proctor", methods=["POST"])
+def add_student_proctor():
+    proctor_id = request.form.get("faculty_id")
+    student_usn = request.form.get("student_usn")
+    cursor = conn.cursor()
+    add_stud_query = "INSERT INTO Proctor VALUES(%(proctor_id)s, %(student_usn)s)"
+    try:
+        cursor.execute(
+            add_stud_query, {"proctor_id": proctor_id, "student_usn": student_usn}
+        )
+        return jsonify({"error": False})
+    except:
+        return jsonify({"error": True})
 
 
 app.config[
