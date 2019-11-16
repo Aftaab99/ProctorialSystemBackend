@@ -8,10 +8,10 @@ app = Flask(__name__)
 
 def get_db_connection():
     conn = psycopg2.connect(
-        database="postgres",
-        user="postgres",
-        password="aftaab",
-        host="localhost",
+        database="dfpqqefj777q4p",
+        user="kktimoofiemaue",
+        password="cdabbc31fb60189e193c2f1a75bf5c78244fc2879950c0adb81a3269d6362b15",
+        host="ec2-54-221-215-228.compute-1.amazonaws.com",
         port="5432",
     )
     return conn
@@ -382,5 +382,3 @@ def user_loader(user_id):
     user.id = user_id
     return user
 
-
-app.run(debug=True)
