@@ -349,6 +349,40 @@ def add_student_proctor():
         return jsonify({"error": True})
 
 
+@app.route("/app/check_proctor_cred", methods=["POST"])
+def check_proctor_cred():
+    proctor_id = request.form.get("proctor_id")
+    password = request.form.get("password")
+    cursor = conn.cursor()
+    fetch_creds = (
+        "SELECT password from ProctorCredentials where proctor_id=%(proctor_id)s"
+    )
+    cursor.execute(fetch_creds, {"proctor_id": proctor_id})
+    if cursor.rowcount == 0:
+        return jsonify({"error": True})
+    else:
+        password_in_db = cursor.fetchone()[0]
+        if password_in_db == password:
+            return jsonify({"error": False})
+        return jsonify({"error": True})
+
+
+@app.route("/app/check_student_cred", methods=["POST"])
+def check_student_cred():
+    student_usn = request.form.get("student_usn")
+    dob = request.form.get("dob")
+    fetch_dob = "SELECT dob from Student where student_usn=%(student_usn)s"
+    cursor = conn.cursor()
+    cursor.execute(fetch_dob, {"student_usn": student_usn})
+    if cursor.rowcount == 0:
+        return jsonify({"error": True})
+    else:
+        dob_in_db = cursor.fetchone()[0]
+        if dob_in_db == dob:
+            return jsonify({"error": False})
+        return jsonify({"error": True})
+
+
 app.config[
     "SECRET_KEY"
 ] = '\x94\x94d"\xf0/\xa4j\xa7\xc7\xa2;\x1aOEp\xb3\xf1\xc3%v+W\xdd'
