@@ -359,7 +359,7 @@ def get_student_details():
         res = {'error':False, 'usn':res[0],'name':res[1], 'joining_year':res[2], 'graduation_year':res[3],'quota':res[4],'email':res[5], 'phone':res[6], 'dept_id':res[7]}
         return jsonify(res)
     else:
-        return jsonify("error":True)
+        return jsonify({"error":True})
 
 @app.route("/app/add_student_proctor", methods=["GET"])
 def add_student_proctor():
