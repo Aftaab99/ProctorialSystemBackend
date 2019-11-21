@@ -313,9 +313,9 @@ def admin():
     return render_template("admin_page.html", faculty_data=faculty_data)
 
 
-@app.route("/app/get_students", methods=["POST"])
+@app.route("/app/get_students", methods=["GET"])
 def get_students():
-    faculty_id = request.form.get("faculty_id")
+    faculty_id = request.args.get("faculty_id")
     fetch_students_q = "SELECT student_usn, CONCAT(first_name,' ',middle_name,' ',lname),department_id FROM Student WHERE student_usn IN (SELECT student_usn from Proctor where proctor_id=%(proctor_id)s)"
     cursor = conn.cursor()
     cursor.execute(fetch_students_q, {"proctor_id": faculty_id})
@@ -324,7 +324,7 @@ def get_students():
     return student_data
 
 
-@app.route("/app/get_all_students", methods=["POST"])
+@app.route("/app/get_all_students", methods=["GET"])
 def get_all_students():
     fetch_all_usns = "SELECT student_usn from Student"
     cursor = conn.cursor()
@@ -334,10 +334,10 @@ def get_all_students():
     return usn_list
 
 
-@app.route("/app/add_student_proctor", methods=["POST"])
+@app.route("/app/add_student_proctor", methods=["GET"])
 def add_student_proctor():
-    proctor_id = request.form.get("faculty_id")
-    student_usn = request.form.get("student_usn")
+    proctor_id = request.args.get("faculty_id")
+    student_usn = request.args.get("student_usn")
     cursor = conn.cursor()
     add_stud_query = "INSERT INTO Proctor VALUES(%(proctor_id)s, %(student_usn)s)"
     try:
@@ -349,12 +349,11 @@ def add_student_proctor():
         return jsonify({"error": True})
 
 
-@app.route("/app/check_proctor_cred", methods=["POST"])
+@app.route("/app/check_proctor_cred", methods=["GET"])
 def check_proctor_cred():
-    print(request.args)
-    proctor_id = request.json.get("proctor_id")
+    proctor_id = request.args.get("proctor_id")
     print(proctor_id)
-    password = request.json.get("password")
+    password = request.args.get("password")
     cursor = conn.cursor()
     fetch_creds = (
         "SELECT password from ProctorCredentials where proctor_id=%(proctor_id)s"
@@ -375,10 +374,10 @@ def check_proctor_cred():
         return jsonify({"error": True})
 
 
-@app.route("/app/check_student_cred", methods=["POST"])
+@app.route("/app/check_student_cred", methods=["GET"])
 def check_student_cred():
-    student_usn = request.form.get("student_usn")
-    dob = request.form.get("dob")
+    student_usn = request.args.get("student_usn")
+    dob = request.args.get("dob")
     fetch_dob = "SELECT dob from Student where student_usn=%(student_usn)s"
     cursor = conn.cursor()
     cursor.execute(fetch_dob, {"student_usn": student_usn})
