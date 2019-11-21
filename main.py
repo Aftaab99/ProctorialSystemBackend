@@ -352,8 +352,8 @@ def add_student_proctor():
 def get_student_details():
     student_usn = request.args.get("student_usn")
     cursor = conn.cursor()
-    get_student_details = "SELECT student_usn,CONCAT(first_name,' ', middle_name,' ',last_name),joining_year,expected_graduation_year,quota,email_id,phone,department_id,dob FROM Student where student_usn=%(student_usn)s"
-    cursor.execute(get_student_details, {'student_usn':student_usn})
+    get_student_details_q = "SELECT student_usn,CONCAT(first_name,' ', middle_name,' ',last_name),joining_year,expected_graduation_year,quota,email_id,phone,department_id,dob FROM Student where student_usn=%(student_usn)s"
+    cursor.execute(get_student_details_q, {'student_usn':student_usn})
     res = cursor.fetchone()
     if len(res)>=8:
         res = {'error':False, 'usn':res[0],'name':res[1], 'joining_year':res[2], 'graduation_year':res[3],'quota':res[4],'email':res[5], 'phone':res[6], 'dept_id':res[7]}
