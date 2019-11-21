@@ -321,7 +321,7 @@ def get_students():
     cursor.execute(fetch_students_q, {"proctor_id": faculty_id})
     student_data = cursor.fetchall()
     student_data = [{"usn": usn, "name": name, "dept":dept} for usn, name,dept in student_data]
-    return student_data
+    return jsonify(student_data)
 
 
 @app.route("/app/get_all_students", methods=["GET"])
