@@ -316,7 +316,7 @@ def admin():
 @app.route("/app/get_students", methods=["GET"])
 def get_students():
     faculty_id = request.args.get("faculty_id")
-    fetch_students_q = "SELECT student_usn, CONCAT(first_name,' ',middle_name,' ',lname),department_id FROM Student WHERE student_usn IN (SELECT student_usn from Proctor where proctor_id=%(proctor_id)s)"
+    fetch_students_q = "SELECT student_usn, CONCAT(first_name, ' ', middle_name,' ', last_name), department_id from Student WHERE student_usn IN (SELECT student_usn from Proctor where proctor_id=%(proctor_id)s)"
     cursor = conn.cursor()
     cursor.execute(fetch_students_q, {"proctor_id": faculty_id})
     student_data = cursor.fetchall()
