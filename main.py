@@ -334,7 +334,7 @@ def get_all_students():
     return usn_list
 
 @app.route("/app/remove_student_proctor", methods=["GET"])
-def add_student_proctor():
+def remove_student_proctor():
     student_usn = request.args.get("student_usn")
     cursor = conn.cursor()
     add_stud_query = "DELETE FROM Proctor where student_usn=%(student_usn)s"
@@ -452,3 +452,5 @@ def user_loader(user_id):
     user.id = user_id
     return user
 
+
+app.run(debug=True)
