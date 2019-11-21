@@ -373,7 +373,8 @@ def add_student_proctor():
         )
         conn.commit()
         return jsonify({"error": False})
-    except:
+    except Exception as e:
+        print(e)
         return jsonify({"error": True})
 
 
