@@ -320,7 +320,7 @@ def get_students():
     cursor = conn.cursor()
     cursor.execute(fetch_students_q, {"proctor_id": faculty_id})
     student_data = cursor.fetchall()
-    student_data = [{"usn": usn, "name": name} for usn, name in student_data]
+    student_data = [{"usn": usn, "name": name, "dept":dept} for usn, name,dept in student_data]
     return student_data
 
 
@@ -333,6 +333,33 @@ def get_all_students():
     usn_list = [usn[0] for usn in usn_list]
     return usn_list
 
+@app.route("/app/remove_student_proctor", methods=["GET"])
+def add_student_proctor():
+    student_usn = request.args.get("student_usn")
+    cursor = conn.cursor()
+    add_stud_query = "DELETE FROM Proctor where student_usn=%(student_usn)s"
+    try:
+        cursor.execute(
+            add_stud_query, {"student_usn": student_usn}
+        )
+        conn.commit()
+        return jsonify({"error": False})
+    except:
+        return jsonify({"error": True})
+
+
+@app.route('/app/get_student_details', methods=['GET'])
+def get_student_details():
+    student_usn = request.args.get("student_usn")
+    cursor = conn.cursor()
+    get_student_details = "SELECT student_usn,CONCAT(first_name,' ', middle_name,' ',last_name),joining_year,expected_graduation_year,quota,email_id,phone,department_id,dob FROM Student where student_usn=%(student_usn)s"
+    cursor.execute(get_student_details, {'student_usn':student_usn})
+    res = cursor.fetchone()
+    if len(res)>=8:
+        res = {'error':False, 'usn':res[0],'name':res[1], 'joining_year':res[2], 'graduation_year':res[3],'quota':res[4],'email':res[5], 'phone':res[6], 'dept_id':res[7]}
+        return jsonify(res)
+    else:
+        return jsonify("error":True)
 
 @app.route("/app/add_student_proctor", methods=["GET"])
 def add_student_proctor():
@@ -344,6 +371,7 @@ def add_student_proctor():
         cursor.execute(
             add_stud_query, {"proctor_id": proctor_id, "student_usn": student_usn}
         )
+        conn.commit()
         return jsonify({"error": False})
     except:
         return jsonify({"error": True})
