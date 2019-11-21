@@ -451,6 +451,3 @@ def user_loader(user_id):
     user = User()
     user.id = user_id
     return user
-
-
-app.run(debug=True)
