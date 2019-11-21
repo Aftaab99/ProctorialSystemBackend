@@ -359,10 +359,11 @@ def check_proctor_cred():
         "SELECT password from ProctorCredentials where proctor_id=%(proctor_id)s"
     )
     cursor.execute(fetch_creds, {"proctor_id": proctor_id})
-    if len(cursor.fetchall()) == 0:
+    res = cursor.fetchall()
+    if len(res) == 0:
         return jsonify({"error": True})
     else:
-        password_in_db = cursor.fetchone()[0]
+        password_in_db = res[0][0]
         if password_in_db == password:
             return jsonify({"error": False})
         return jsonify({"error": True})
