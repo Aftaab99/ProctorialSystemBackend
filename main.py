@@ -318,10 +318,14 @@ def get_students():
     faculty_id = request.args.get("faculty_id")
     fetch_students_q = "SELECT student_usn, CONCAT(first_name, ' ', middle_name,' ', last_name), department_id from Student WHERE student_usn IN (SELECT student_usn from Proctor where proctor_id=%(proctor_id)s)"
     cursor = conn.cursor()
-    cursor.execute(fetch_students_q, {"proctor_id": faculty_id})
-    student_data = cursor.fetchall()
-    student_data = [{"usn": usn, "name": name, "dept":dept} for usn, name,dept in student_data]
-    return jsonify(student_data)
+    try:
+        cursor.execute(fetch_students_q, {"proctor_id": faculty_id})
+        student_data = cursor.fetchall()
+        student_data = [{"usn": usn, "name": name, "dept":dept} for usn, name,dept in student_data]
+        return jsonify(student_data)
+    except Exception as e:
+        print(e)
+        return jsonify([])
 
 
 @app.route("/app/get_all_students", methods=["GET"])
