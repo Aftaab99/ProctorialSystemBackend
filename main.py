@@ -352,6 +352,7 @@ def add_student_proctor():
 @app.route("/app/check_proctor_cred", methods=["POST"])
 def check_proctor_cred():
     proctor_id = request.form.get("proctor_id")
+    print(proctor_id)
     password = request.form.get("password")
     cursor = conn.cursor()
     fetch_creds = (
