@@ -163,8 +163,8 @@ def add_student():
     lname = request.form.get("lname")
     usn = request.form.get("usn")
     dob = request.form.get("dob")
-    stud_email = request.form.get("stud_email")
-    stud_phone = request.form.get("stud_phone")
+    stud_email = request.form.get("student_email")
+    stud_phone = request.form.get("student_phone")
     join_year = int(request.form.get("join_year"))
     grad_year = int(request.form.get("grad_year"))
     dept_id = request.form.get("dept_id")
@@ -360,7 +360,7 @@ def get_student_details():
     cursor.execute(get_student_details_q, {'student_usn':student_usn})
     res = cursor.fetchone()
     if len(res)>=8:
-        res = {'error':False, 'usn':res[0],'name':res[1], 'joining_year':res[2], 'graduation_year':res[3],'quota':res[4],'email':res[5], 'phone':res[6], 'dept_id':res[7]}
+        res = {'error':False, 'usn':res[0],'name':res[1], 'joining_year':int(res[2]), 'graduation_year':int(res[3]),'quota':res[4],'email':res[5], 'phone':res[6], 'dept_id':res[7]}
         print(res)
         return jsonify(res)
     else:
