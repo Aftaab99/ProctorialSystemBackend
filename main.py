@@ -365,7 +365,9 @@ def check_proctor_cred():
     else:
         password_in_db = res[0][0]
         if password_in_db == password:
-            return jsonify({"error": False})
+            cursor.execute('SELECT name from Faculty where faculty_id=%(proctor_id)s', {'proctor_id':proctor_id})
+            name = cursor.fetchone()[0]
+            return jsonify({"error": False, "username":name})
         return jsonify({"error": True})
 
 
@@ -376,12 +378,16 @@ def check_student_cred():
     fetch_dob = "SELECT dob from Student where student_usn=%(student_usn)s"
     cursor = conn.cursor()
     cursor.execute(fetch_dob, {"student_usn": student_usn})
-    if len(cursor.fetchall()) == 0:
+    res = cursor.fetchall()
+
+    if len(res) == 0:
         return jsonify({"error": True})
     else:
-        dob_in_db = cursor.fetchone()[0]
+        dob_in_db = res[0][0]
         if dob_in_db == dob:
-            return jsonify({"error": False})
+            cursor.execute('SELECT first_name from Student where student_usn=%(student_usn)s', {'student_usn':student_usn})
+            name = cursor.fetchone()[0]
+            return jsonify({"error": False, "username":name})
         return jsonify({"error": True})
 
 
