@@ -359,8 +359,11 @@ def check_proctor_cred():
     )
     cursor.execute(fetch_creds, {"proctor_id": proctor_id})
     if len(cursor.fetchall()) == 0:
+        print('Fail..., cursors.fetchall()={}, len={}'.format(cursor.fetchall(), len(cursor.fetchall())))
         return jsonify({"error": True})
     else:
+        print('Pass..., cursors.fetchall()={}, pass={}'.format(cursor.fetchall(), len(cursor.fetchone()[0])))
+
         password_in_db = cursor.fetchone()[0]
         if password_in_db == password:
             return jsonify({"error": False})
