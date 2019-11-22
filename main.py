@@ -432,7 +432,7 @@ def get_parent_contact():
     cursor = conn.cursor()
     cursor.execute("SELECT contact,email_id from Parent where student_usn=%(student_usn)s", {'student_usn':student_usn})
     res = cursor.fetchone()
-    return jsonify({'parent_email':res[0], 'parent_phone':res[1], 'error':False})
+    return jsonify({'parent_email':res[0], 'parent_phone':int(res[1]), 'error':False})
 
 
 @app.route('/app/view_messages', methods=['GET'])
