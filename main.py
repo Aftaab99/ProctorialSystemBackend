@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, jsonify, url_for, redirect
 from flask_login import LoginManager, UserMixin, login_required, login_user, logout_user
 import datetime
 import psycopg2
-
+import time
 app = Flask(__name__)
 
 
@@ -360,7 +360,8 @@ def get_student_details():
     cursor.execute(get_student_details_q, {'student_usn':student_usn})
     res = cursor.fetchone()
     if len(res)>=8:
-        res = {'error':False, 'usn':res[0],'name':res[1], 'joining_year':int(res[2]), 'graduation_year':int(res[3]),'quota':res[4],'email':res[5], 'phone':int(res[6]), 'dept_id':res[7]}
+        res = {'error':False, 'usn':res[0],'name':res[1], 'joining_year':int(res[2]), 'graduation_year':int(res[3]),'quota':res[4],
+        'email':res[5], 'phone':int(res[6]), 'dept_id':res[7]}
         print(res)
         return jsonify(res)
     else:
@@ -424,6 +425,45 @@ def check_student_cred():
             return jsonify({"error": False, "username":name})
         return jsonify({"error": True})
 
+
+@appr.route('/app/fetch_parent_contact', methods=['GET'])
+def get_parent_contact():
+    student_usn = request.args.get('student_usn')
+    cursor = conn.cursor()
+    cursor.execute("SELECT contact,email_id from Parent where student_usn=%(student_usn)s", {'student_usn':student_usn})
+    res = cursor.fetchone()
+    return jsonify({'parent_email':res[0], 'parent_phone':res[1], 'error':False})
+
+
+@app.route('/app/view_messages', methods=['GET'])
+def send_message():
+    proctor_id = request.args.get('proctor_id')
+    student_usn = request.args.get('student_usn')
+    cursor = conn.cursor()
+    fetch_messages_proc_usn = "SELECT message_text,sent_time from Messages WHERE sender_id=%(proctor_id)s AND receiver_id=%(student_usn)s ORDER BY sent_time asc"
+    cursor.execute(fetch_messages_proc_usn, {'proctor_id':proctor_id, 'student_usn':student_usn})
+    proc_usn = cursor.fetchall()
+    proc_usn = [(m[0],int(m[1])) for m in proc_usn]
+
+    fetch_messages_usn_proc = "SELECT message_text,sent_time from Messages WHERE sender_id=%(student_usn)s AND receiver_id=%(proctor_id)s ORDER BY sent_time asc"
+    cursor.execute(fetch_messages_usn_proc, {'proctor_id':proctor_id, 'student_usn':student_usn})
+    usn_proc = cursor.fetchall()
+    usn_proc = [(m[0],int(m[1])) for m in usn_proc]
+
+    return jsonify({'proctor_to_student':proc_usn, 'student_to_proctor':usn_proc})
+
+
+@app.route('/app/send_message', methods=['GET'])
+def send_message():
+    message = request.args.get(("message"))
+    sender_id = request.args.get('sender_id')
+    receiver_id = request.args.get('receiver_usn')
+    sent_time = str(time.time())
+    cursor = conn.cursor()
+    cursor.execute("INSERT INTO Message VALUES(%(sender_id)s, %(receiver_id)s, %(sent_time)s, %(message)s)"
+                    {'sender_id':sender_id, 'receiver_id':receiver_id, 'sent_time':sent_time, 'message':message})
+    conn.commit()
+    return jsonify({'error':False})
 
 app.config[
     "SECRET_KEY"
