@@ -426,7 +426,7 @@ def check_student_cred():
         return jsonify({"error": True})
 
 
-@appr.route('/app/fetch_parent_contact', methods=['GET'])
+@app.route('/app/fetch_parent_contact', methods=['GET'])
 def get_parent_contact():
     student_usn = request.args.get('student_usn')
     cursor = conn.cursor()
