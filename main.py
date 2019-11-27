@@ -475,7 +475,8 @@ def get_parent_contact():
 def store_proctor_details():
     json_arr = request.form.get('report_entries')
     print(json_arr)
-    print(request.data.get('report_entries'))
+    print(request.json.keys())
+    print(request.json.get('report_entries'))
     if json_arr is not None:
         print(json_arr)
         return jsonify({'error':False})
