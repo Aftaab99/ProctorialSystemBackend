@@ -6,14 +6,12 @@ CREATE TABLE IF NOT EXISTS Parent(student_usn VARCHAR(15) REFERENCES Student(stu
 
 CREATE TABLE IF NOT EXISTS Faculty(faculty_id VARCHAR(320) PRIMARY KEY, name VARCHAR(50), department_id VARCHAR(15) REFERENCES Department(department_id) ON DELETE CASCADE);
 
-CREATE TABLE IF NOT EXISTS Proctor(proctor_id VARCHAR(320), student_usn VARCHAR(15), PRIMARY KEY(proctor_id,student_usn), FOREIGN KEY(proctor_id) REFERENCES Faculty(faculty_id) ON DELETE CASCADE, FOREIGN KEY(student_usn) REFERENCES Student(student_usn) ON DELETE CASCADE);
+CREATE TABLE IF NOT EXISTS Proctor(proctor_id VARCHAR(320), student_usn VARCHAR(15) PRIMARY KEY, FOREIGN KEY(proctor_id) REFERENCES Faculty(faculty_id) ON DELETE CASCADE, FOREIGN KEY(student_usn) REFERENCES Student(student_usn) ON DELETE CASCADE);
 
-CREATE TABLE IF NOT EXISTS Messages(sender_id VARCHAR(320), receiver_id VARCHAR(320), sent_time TIMESTAMP, message_text VARCHAR(1000), PRIMARY KEY(sender_id, receiver_id, sent_time));
-
-CREATE TABLE IF NOT EXISTS Reports(proctor_id VARCHAR(320), student_usn VARCHAR(15), meet_date DATE, report_file_name VARCHAR(25), PRIMARY KEY(proctor_id,student_usn,meet_date), FOREIGN KEY(proctor_id,student_usn) REFERENCES Proctor(proctor_id,student_usn) ON DELETE CASCADE);
+CREATE TABLE IF NOT EXISTS Reports(meet_date VARCHAR(10),proctor_id VARCHAR(320) REFERENCES Proctor(proctor_id) ON DELETE CASCADE, PRIMARY KEY(meet_date,proctor_id));
+CREATE TABLE IF NOT EXISTS Remarks(meet_date VARCHAR(10) REFERENCES Reports(meet_date) ON DELETE CASCADE,proctor_id VARCHAR(320) REFERENCES Proctor(proctor_id) ON DELETE CASCADE, student_usn VARCHAR(10) REFERENCES Proctor(student_usn) ON DELETE CASCADE, remark VARCHAR(250), PRIMARY KEY(meet_date,proctor_id,student_usn));
 
 CREATE TABLE IF NOT EXISTS Admin(admin_password varchar(50));
 INSERT INTO Admin VALUES('ef5c965c33d32e9939d9f31670d3aa82') ON CONFLICT DO NOTHING;
 
 CREATE TABLE IF NOT EXISTS ProctorCredentials(proctor_id VARCHAR(320) UNIQUE REFERENCES Faculty(faculty_id) ON DELETE CASCADE, password VARCHAR(512));
-CREATE TABLE IF NOT EXISTS StudentCredentials(student_usn VARCHAR(10) UNIQUE REFERENCES Student(student_usn) ON DELETE CASCADE, password VARCHAR(512));

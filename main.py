@@ -472,15 +472,59 @@ def get_parent_contact():
         }
     )
 
-@app.route('/app/store_proctor_details', methods=['POST'])
+
+@app.route("/app/store_proctor_details", methods=["POST"])
 def store_proctor_details():
     data = request.data
     if data is not None:
-        j = json.loads(data)
-        print(j)
-        return jsonify({'error':False})
+        req = json.loads(data)
+        proctor_id = req["proctor_id"]
+        meet_date = req["meet_date"]
+        cursor = conn.cursor()
+        cursor.execute(
+            "INSERT INTO Reports VALUES(%(date)s, %(p_id)s)",
+            {"date": meet_date, "p_id": proctor_id},
+        )
+
+        for item in req["report_entries"]:
+            cursor.execute(
+                "INSERT INTO Remarks VALUES(%(date)s, %(p_id)s, %(usn)s, %(remark)s)",
+                {
+                    "date": meet_date,
+                    "p_id": proctor_id,
+                    "usn": item["usn", "remark": item["remark"]],
+                },
+            )
+        conn.commit()
+
+        return jsonify({"error": False})
     else:
-        return jsonify({'error':True})
+        return jsonify({"error": True})
+
+
+@app.route("/app/fetch_reports", methods=["GET"])
+def fetch_reports():
+    proctor_id = request.args.get("proctor_id")
+    if proctor_id is None:
+        print("Problem!")
+
+    cursor = conn.cursor()
+    # First get all distinct dates where the proctor has conducted proctor meets
+    cursor.execute(
+        "SELECT DISTINCT meet_date FROM Reports WHERE proctor_id=%(proctor_id)s",
+        {"proctor_id": proctor_id},
+    )
+    dates = cursor.fetchall()
+    dates = [d[0] for d in dates]
+    result = []
+    for d in dates:
+        cursor.execute(
+            "SELECT student_usn,remark FROM Remarks WHERE meet_date=%(date)s AND proctor_id=%(proctor_id)s",
+            {"proctor_id": proctor_id, "date": d},
+        )
+        r = cursor.fetchall()
+        result.append({d: r})
+    return jsonify(result)
 
 
 app.config[
