@@ -10,10 +10,10 @@ app = Flask(__name__)
 
 def get_db_connection():
     conn = psycopg2.connect(
-        database="dfpqqefj777q4p",
-        user="kktimoofiemaue",
-        password="cdabbc31fb60189e193c2f1a75bf5c78244fc2879950c0adb81a3269d6362b15",
-        host="ec2-54-221-215-228.compute-1.amazonaws.com",
+        database="d4ief9ud5nevv6",
+        user="jxucsoeyxxskno",
+        password="fbd595dcf9e491f257a849d48cff7f1b30096a398574681612a44d46d07a5af6",
+        host="ec2-23-21-248-1.compute-1.amazonaws.com",
         port="5432",
     )
     return conn
