@@ -455,7 +455,7 @@ def get_parent_contact():
     )
     parent_contact = cursor.fetchone()
     cursor.execute(
-        "SELECT contact,email_id from Student where student_usn=%(student_usn)s",
+        "SELECT name,email_id from Student where student_usn=%(student_usn)s",
         {"student_usn": student_usn},
     )
     student_contact = cursor.fetchone()
