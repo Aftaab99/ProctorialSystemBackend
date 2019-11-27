@@ -473,12 +473,9 @@ def get_parent_contact():
 
 @app.route('/app/store_proctor_details', methods=['POST'])
 def store_proctor_details():
-    json_arr = request.form.get('report_entries')
-    print(json_arr)
-    print(request.json.keys())
-    print(request.json.get('report_entries'))
-    if json_arr is not None:
-        print(json_arr)
+    data = request.data
+    if data is not None:
+        print(data)
         return jsonify({'error':False})
     else:
         return jsonify({'error':True})
