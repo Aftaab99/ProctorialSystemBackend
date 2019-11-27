@@ -484,22 +484,26 @@ def store_proctor_details():
         proctor_id = req["proctor_id"]
         meet_date = req["meet_date"]
         cursor = conn.cursor()
-        cursor.execute(
-            "INSERT INTO Reports VALUES(%(date)s, %(p_id)s)",
-            {"date": meet_date, "p_id": proctor_id},
-        )
-
-        for item in req["report_entries"]:
+        try:
             cursor.execute(
-                "INSERT INTO Remarks VALUES(%(date)s, %(p_id)s, %(usn)s, %(remark)s)",
-                {
-                    "date": meet_date,
-                    "p_id": proctor_id,
-                    "usn": item["usn"],
-                    "remark": item["remark"],
-                },
+                "INSERT INTO Reports VALUES(%(date)s, %(p_id)s)",
+                {"date": meet_date, "p_id": proctor_id},
             )
-        conn.commit()
+
+            for item in req["report_entries"]:
+                cursor.execute(
+                    "INSERT INTO Remarks VALUES(%(date)s, %(p_id)s, %(usn)s, %(remark)s)",
+                    {
+                        "date": meet_date,
+                        "p_id": proctor_id,
+                        "usn": item["usn"],
+                        "remark": item["remark"],
+                    },
+                )
+            conn.commit()
+        except Exception as e:
+            print(e)
+            return({'error':True})
 
         return jsonify({"error": False})
     else:
