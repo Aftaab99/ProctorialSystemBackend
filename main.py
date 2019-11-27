@@ -18,6 +18,7 @@ def get_db_connection():
     )
     return conn
 
+
 # Just to trigger restart
 
 
@@ -494,7 +495,8 @@ def store_proctor_details():
                 {
                     "date": meet_date,
                     "p_id": proctor_id,
-                    "usn": item["usn"], "remark": item["remark"],
+                    "usn": item["usn"],
+                    "remark": item["remark"],
                 },
             )
         conn.commit()
@@ -518,14 +520,14 @@ def fetch_reports():
     )
     dates = cursor.fetchall()
     dates = [d[0] for d in dates]
-    result = []
+    result = {}
     for d in dates:
         cursor.execute(
             "SELECT student_usn,remark FROM Remarks WHERE meet_date=%(date)s AND proctor_id=%(proctor_id)s",
             {"proctor_id": proctor_id, "date": d},
         )
         r = cursor.fetchall()
-        result.append({d: r})
+        result[d] = r
     return jsonify(result)
 
 
