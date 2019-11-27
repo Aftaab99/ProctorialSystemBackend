@@ -3,6 +3,7 @@ from flask_login import LoginManager, UserMixin, login_required, login_user, log
 import datetime
 import psycopg2
 import time
+
 app = Flask(__name__)
 
 
@@ -321,7 +322,9 @@ def get_students():
     try:
         cursor.execute(fetch_students_q, {"proctor_id": faculty_id})
         student_data = cursor.fetchall()
-        student_data = [{"usn": usn, "name": name, "dept":dept} for usn, name,dept in student_data]
+        student_data = [
+            {"usn": usn, "name": name, "dept": dept} for usn, name, dept in student_data
+        ]
         return jsonify(student_data)
     except Exception as e:
         print(e)
@@ -337,35 +340,44 @@ def get_all_students():
     usn_list = [usn[0] for usn in usn_list]
     return usn_list
 
+
 @app.route("/app/remove_student_proctor", methods=["GET"])
 def remove_student_proctor():
     student_usn = request.args.get("student_usn")
     cursor = conn.cursor()
     add_stud_query = "DELETE FROM Proctor where student_usn=%(student_usn)s"
     try:
-        cursor.execute(
-            add_stud_query, {"student_usn": student_usn}
-        )
+        cursor.execute(add_stud_query, {"student_usn": student_usn})
         conn.commit()
         return jsonify({"error": False})
     except:
         return jsonify({"error": True})
 
 
-@app.route('/app/get_student_details', methods=['GET'])
+@app.route("/app/get_student_details", methods=["GET"])
 def get_student_details():
     student_usn = request.args.get("student_usn")
     cursor = conn.cursor()
     get_student_details_q = "SELECT student_usn,CONCAT(first_name,' ', middle_name,' ',last_name),joining_year,expected_graduation_year,quota,email_id,phone,department_id,dob FROM Student where student_usn=%(student_usn)s"
-    cursor.execute(get_student_details_q, {'student_usn':student_usn})
+    cursor.execute(get_student_details_q, {"student_usn": student_usn})
     res = cursor.fetchone()
-    if len(res)>=8:
-        res = {'error':False, 'usn':res[0],'name':res[1], 'joining_year':int(res[2]), 'graduation_year':int(res[3]),'quota':res[4],
-        'email':res[5], 'phone':int(res[6]), 'dept_id':res[7]}
+    if len(res) >= 8:
+        res = {
+            "error": False,
+            "usn": res[0],
+            "name": res[1],
+            "joining_year": int(res[2]),
+            "graduation_year": int(res[3]),
+            "quota": res[4],
+            "email": res[5],
+            "phone": int(res[6]),
+            "dept_id": res[7],
+        }
         print(res)
         return jsonify(res)
     else:
-        return jsonify({"error":True})
+        return jsonify({"error": True})
+
 
 @app.route("/app/add_student_proctor", methods=["GET"])
 def add_student_proctor():
@@ -400,9 +412,12 @@ def check_proctor_cred():
     else:
         password_in_db = res[0][0]
         if password_in_db == password:
-            cursor.execute('SELECT name from Faculty where faculty_id=%(proctor_id)s', {'proctor_id':proctor_id})
+            cursor.execute(
+                "SELECT name from Faculty where faculty_id=%(proctor_id)s",
+                {"proctor_id": proctor_id},
+            )
             name = cursor.fetchone()[0]
-            return jsonify({"error": False, "username":name})
+            return jsonify({"error": False, "username": name})
         return jsonify({"error": True})
 
 
@@ -420,50 +435,42 @@ def check_student_cred():
     else:
         dob_in_db = res[0][0]
         if dob_in_db == dob:
-            cursor.execute('SELECT first_name from Student where student_usn=%(student_usn)s', {'student_usn':student_usn})
+            cursor.execute(
+                "SELECT first_name from Student where student_usn=%(student_usn)s",
+                {"student_usn": student_usn},
+            )
             name = cursor.fetchone()[0]
-            return jsonify({"error": False, "username":name})
+            return jsonify({"error": False, "username": name})
         return jsonify({"error": True})
 
 
-@app.route('/app/fetch_parent_contact', methods=['GET'])
+@app.route("/app/fetch_parent_details", methods=["GET"])
 def get_parent_contact():
-    student_usn = request.args.get('student_usn')
+    student_usn = request.args.get("student_usn")
+
     cursor = conn.cursor()
-    cursor.execute("SELECT contact,email_id from Parent where student_usn=%(student_usn)s", {'student_usn':student_usn})
-    res = cursor.fetchone()
-    return jsonify({'parent_email':res[1], 'parent_phone':int(res[0]), 'error':False})
+    cursor.execute(
+        "SELECT contact,email_id from Parent where student_usn=%(student_usn)s",
+        {"student_usn": student_usn},
+    )
+    parent_contact = cursor.fetchone()
+    cursor.execute(
+        "SELECT contact,email_id from Student where student_usn=%(student_usn)s",
+        {"student_usn": student_usn},
+    )
+    student_contact = cursor.fetchone()
+    if len(student_contact) == 0 or len(parent_contact) == 0:
+        return jsonify({"error": True})
+    return jsonify(
+        {
+            "parent_email": parent_contact[1],
+            "parent_phone": int(parent_contact[0]),
+            "student_email": student_contact[1],
+            "student_phone": int(student_contact[0]),
+            "error": False,
+        }
+    )
 
-
-# @app.route('/app/view_messages', methods=['GET'])
-# def send_message():
-#     proctor_id = request.args.get('proctor_id')
-#     student_usn = request.args.get('student_usn')
-#     cursor = conn.cursor()
-#     fetch_messages_proc_usn = "SELECT message_text,sent_time from Messages WHERE sender_id=%(proctor_id)s AND receiver_id=%(student_usn)s ORDER BY sent_time asc"
-#     cursor.execute(fetch_messages_proc_usn, {'proctor_id':proctor_id, 'student_usn':student_usn})
-#     proc_usn = cursor.fetchall()
-#     proc_usn = [(m[0],int(m[1])) for m in proc_usn]
-
-#     fetch_messages_usn_proc = "SELECT message_text,sent_time from Messages WHERE sender_id=%(student_usn)s AND receiver_id=%(proctor_id)s ORDER BY sent_time asc"
-#     cursor.execute(fetch_messages_usn_proc, {'proctor_id':proctor_id, 'student_usn':student_usn})
-#     usn_proc = cursor.fetchall()
-#     usn_proc = [(m[0],int(m[1])) for m in usn_proc]
-
-#     return jsonify({'proctor_to_student':proc_usn, 'student_to_proctor':usn_proc})
-
-
-# @app.route('/app/send_message', methods=['GET'])
-# def send_message():
-#     message = request.args.get(("message"))
-#     sender_id = request.args.get('sender_id')
-#     receiver_id = request.args.get('receiver_usn')
-#     sent_time = str(time.time())
-#     cursor = conn.cursor()
-#     cursor.execute("INSERT INTO Message VALUES(%(sender_id)s, %(receiver_id)s, %(sent_time)s, %(message)s)"
-#                     {'sender_id':sender_id, 'receiver_id':receiver_id, 'sent_time':sent_time, 'message':message})
-#     conn.commit()
-#     return jsonify({'error':False})
 
 app.config[
     "SECRET_KEY"
