@@ -3,6 +3,7 @@ from flask_login import LoginManager, UserMixin, login_required, login_user, log
 import datetime
 import psycopg2
 import time
+import json
 
 app = Flask(__name__)
 
@@ -475,7 +476,8 @@ def get_parent_contact():
 def store_proctor_details():
     data = request.data
     if data is not None:
-        print(data)
+        j = json.loads(data)
+        print(j)
         return jsonify({'error':False})
     else:
         return jsonify({'error':True})
