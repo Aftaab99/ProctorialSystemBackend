@@ -471,6 +471,15 @@ def get_parent_contact():
         }
     )
 
+@app.route('/app/store_proctor_details', methods=['POST'])
+def store_proctor_details():
+    json_arr = request.form.get('report_entries')
+    if json_arr is not None:
+        print(json_arr)
+        return jsonify({'error':False})
+    else:
+        return jsonify({'error':True})
+
 
 app.config[
     "SECRET_KEY"
