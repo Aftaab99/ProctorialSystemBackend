@@ -18,6 +18,8 @@ def get_db_connection():
     )
     return conn
 
+# Just to trigger restart
+
 
 @app.route("/admin")
 @login_required
