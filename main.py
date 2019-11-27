@@ -494,7 +494,7 @@ def store_proctor_details():
                 {
                     "date": meet_date,
                     "p_id": proctor_id,
-                    "usn": item["usn", "remark": item["remark"]],
+                    "usn": item["usn"], "remark": item["remark"],
                 },
             )
         conn.commit()
