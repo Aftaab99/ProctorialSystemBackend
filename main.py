@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, jsonify, url_for, redirect
-from flask_login import LoginManager, UserMixin, login_required, login_user, logout_user
+from flask_login import LoginManager, UserMixin, login_required, login_user, logout_user, current_user
 import datetime
 import psycopg2
 import time
@@ -48,8 +48,11 @@ def main_page():
 
 
 @app.route("/")
-def hello():
-    return "Index page"
+def index_page():
+    if current_user.is_authenticated:
+        return redirect("/admin")
+    else:
+        return redirect("/admin/login")
 
 
 @app.route("/admin/department/remove", methods=["POST"])
