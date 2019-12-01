@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS Proctor(proctor_id VARCHAR(320), student_usn VARCHAR(
 CREATE TABLE IF NOT EXISTS Reports(meet_date VARCHAR(10),proctor_id VARCHAR(320) REFERENCES Faculty(faculty_id) ON DELETE CASCADE, PRIMARY KEY(meet_date,proctor_id));
 CREATE TABLE IF NOT EXISTS Remarks(meet_date VARCHAR(10),proctor_id VARCHAR(320) REFERENCES Faculty(faculty_id) ON DELETE CASCADE, student_usn VARCHAR(10) REFERENCES Student(student_usn) ON DELETE CASCADE, remark VARCHAR(250), PRIMARY KEY(meet_date,proctor_id,student_usn));
 
-CREATE TABLE IF NOT EXISTS Admin(admin_password varchar(50));
+CREATE TABLE IF NOT EXISTS Admin(admin_password varchar(50) PRIMARY KEY);
 INSERT INTO Admin VALUES('ef5c965c33d32e9939d9f31670d3aa82') ON CONFLICT DO NOTHING;
 
 CREATE TABLE IF NOT EXISTS ProctorCredentials(proctor_id VARCHAR(320) UNIQUE REFERENCES Faculty(faculty_id) ON DELETE CASCADE, password VARCHAR(512));
