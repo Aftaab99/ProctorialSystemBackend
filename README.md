@@ -1,5 +1,5 @@
 # ProctorialSystemBackend
-Server-side code for Aftaab99/ProctorialSystemApp
+Server-side code for [Aftaab99/ProctorialSystemApp](https://www.github.com/Aftaab99/ProctorialSystemApp)
 
 
 ## Running locally
@@ -10,23 +10,15 @@ To start the server run,
 
     python main.py
 
-This starts a server listening at `http://localhost:5000/`. Clicking on the link should take you to a empty index page. Head over to `http://localhost:5000/admin/login` to login with the admin password. 
+This starts a server listening at `http://localhost:5000/`
 
-## Note
+## Screenshots
+![Admin](https://github.com/Aftaab99/ProctorialSystemBackend/blob/master/screenshots/s1.png)
 
-Departments route is at `http://localhost:5000/admin/department`.
+![Department page](https://github.com/Aftaab99/ProctorialSystemBackend/blob/master/screenshots/s2.png)
 
-All html files need to placed inside the `templates` direcctory. All JS in `static/js`. Check out some of the HTML files for how to link the JS files.
+![Faculty page](https://github.com/Aftaab99/ProctorialSystemBackend/blob/master/screenshots/s3.png)
 
-## Git commands
-From inside the clone of your forked directory, run this in your clone before making changes
-    
-    git checkout development
+![Faculty credentials page](https://github.com/Aftaab99/ProctorialSystemBackend/blob/master/screenshots/s4.png)
 
-Then push your changes
-
-    git add .
-    git commit -m 'What changes you made'
-    git push origin development
-
-Then headover to your forked repo on Github, click new pull request and create new pull request.
+![Students page](https://github.com/Aftaab99/ProctorialSystemBackend/blob/master/screenshots/s5.png)
