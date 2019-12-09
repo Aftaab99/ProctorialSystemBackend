@@ -19,9 +19,6 @@ def get_db_connection():
     return conn
 
 
-# Just to trigger restart
-
-
 @app.route("/admin")
 @login_required
 def main_page():
@@ -537,6 +534,24 @@ def fetch_reports():
         result[d] = r
     return jsonify(result)
 
+@app.route('/admin/view_proctor_students', methods=['GET'])
+def view_proctor_students():
+    cursor = conn.cursor()
+    cursor.execute("SELECT DISTINCT proctor_id FROM Proctor")
+    proctor_list = cursor.fetchall()
+    proctor_list = [p[0] for p in proctor_list]
+    res = []
+    for p in proctor_list:
+        cursor.execute("SELECT student_usn FROM Proctor WHERE proctor_id=%(proctor_id)s", {'proctor_id':p})
+        student_list = cursor.fetchall()
+        student_list = [s[0] for s in student_list]
+        cursor.execute("SELECT name FROM Faculty WHERE faculty_id=%(proctor_id)s", {'proctor_id':p})
+        pname = cursor.fetchone()[0]
+        pid = replace_last_occurence(p, "@", "__at__")
+        pid = replace_last_occurence(pid, ".", "__dot__")
+        print(pid)
+        res.append([pname, pid, student_list])
+    return render_template('admin_proctor_student_list.html', student_list=res)
 
 app.config[
     "SECRET_KEY"
@@ -570,3 +585,4 @@ def user_loader(user_id):
     user = User()
     user.id = user_id
     return user
+app.run()
