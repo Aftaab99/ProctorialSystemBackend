@@ -58,10 +58,13 @@ def remove_department():
     cursor = conn.cursor()
     dept_id = request.form.get("dept_id")
     remove_query = "DELETE FROM Department where department_id=%(department_id)s"
-    cursor.execute(remove_query, {"department_id": dept_id})
-    print(cursor.rowcount)
-    conn.commit()
-    return {"error": False}
+    try:
+        cursor.execute(remove_query, {"department_id": dept_id})
+        print(cursor.rowcount)
+        conn.commit()
+        return jsonify({"error": False})
+    except:
+        return jsonify({'error':True})
 
 
 def replace_last_occurence(s, s1, s2):
@@ -154,9 +157,12 @@ def remove_student():
     usn = request.form.get("usn")
     delete_q = "DELETE FROM Student WHERE student_usn=%(usn)s"
     cursor = conn.cursor()
-    cursor.execute(delete_q, {"usn": usn})
-    conn.commit()
-    return jsonify({"error": False})
+    try:
+        cursor.execute(delete_q, {"usn": usn})
+        conn.commit()
+        return jsonify({"error": False})
+    except:
+        return jsonify({'error':True})
 
 
 @app.route("/admin/student/add", methods=["POST"])
@@ -201,7 +207,6 @@ def add_student():
                 "dob": dob,
             },
         )
-        conn.commit()
 
         add_parent = "INSERT INTO Parent VALUES(%(stud_usn)s, %(parent_name)s, %(parent_phone)s, %(parent_email)s) ON CONFLICT DO NOTHING"
         cursor.execute(
