@@ -576,7 +576,11 @@ cursor.execute(admin_pass_q)
 admin_password = cursor.fetchone()[0]
 
 users = {"admin": {"password": admin_password}}
-
+# delete_reports = "DELETE FROM Reports"
+# delete_remarks = "DELETE From Remarks"
+# cursor.execute(delete_reports)
+# cursor.execute(delete_remarks)
+# conn.commit()
 
 class User(UserMixin):
     pass
@@ -590,3 +594,4 @@ def user_loader(user_id):
     user = User()
     user.id = user_id
     return user
+# app.run()
