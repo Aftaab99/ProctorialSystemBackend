@@ -1,20 +1,23 @@
-from flask import Flask, render_template, request, jsonify, url_for, redirect
+from flask import Flask, render_template, request, jsonify, url_for, redirect, make_response
 from flask_login import LoginManager, UserMixin, login_required, login_user, logout_user, current_user
 import datetime
 import psycopg2
 import time
 import json
+import credentials
+from functools import wraps
+import jwt
 
 app = Flask(__name__)
 
 
 def get_db_connection():
     conn = psycopg2.connect(
-        database="d4ief9ud5nevv6",
-        user="jxucsoeyxxskno",
-        password="fbd595dcf9e491f257a849d48cff7f1b30096a398574681612a44d46d07a5af6",
-        host="ec2-23-21-248-1.compute-1.amazonaws.com",
-        port="5432",
+        database=database_credentials.database,
+        user=database_credentials.user,
+        password=database_credentials.password,
+        host=database_credentials.host,
+        port=database_credentials.port,
     )
     return conn
 
@@ -64,6 +67,7 @@ def remove_department():
         conn.commit()
         return jsonify({"error": False})
     except:
+        conn.rollback()
         return jsonify({'error':True})
 
 
@@ -80,11 +84,13 @@ def remove_faculty():
     fid = request.form.get("fid")
     fid = replace_last_occurence(fid, "__at__", "@")
     fid = replace_last_occurence(fid, "__dot__", ".")
-
-    remove_query = "DELETE FROM Faculty where faculty_id=%(fid)s"
-    cursor.execute(remove_query, {"fid": fid})
-    print(cursor.rowcount)
-    conn.commit()
+    try:
+        remove_query = "DELETE FROM Faculty where faculty_id=%(fid)s"
+        cursor.execute(remove_query, {"fid": fid})
+        conn.commit()
+    except:
+        conn.rollback()
+        print(e)
     return {"error": False}
 
 
@@ -104,6 +110,7 @@ def add_faculty():
         conn.commit()
         return jsonify({"error": False, "dept_name": dname})
     except:
+        conn.rollback()
         return jsonify({"error": True})
 
 
@@ -119,6 +126,7 @@ def add_department():
         conn.commit()
         return jsonify({"error": False})
     except:
+        conn.rollback()
         return jsonify({"error": True})
 
 
@@ -147,7 +155,7 @@ def add_proctor_cred():
         return jsonify({"error": False})
     except Exception as e:
         print(e)
-        conn.commit()
+        conn.rollback()
         return jsonify({"error": True})
 
 
@@ -162,6 +170,7 @@ def remove_student():
         conn.commit()
         return jsonify({"error": False})
     except:
+        conn.rollback()
         return jsonify({'error':True})
 
 
@@ -221,7 +230,7 @@ def add_student():
         conn.commit()
         return jsonify({"error": False})
     except Exception as e:
-        print(e)
+        conn.rollback()
         return jsonify({"error": True})
 
 
@@ -245,13 +254,9 @@ def manage_student():
 @app.route("/admin/login", methods=["GET", "POST"])
 def admin_login():
     if request.method == "GET":
-        for _ in range(15):
-            print("YO")
-
         return render_template("admin_login_page.html")
 
     entered_password = request.form.get("password")
-    print(entered_password)
     if entered_password == users["admin"]["password"]:
         user = User()
         user.id = "admin"
@@ -274,7 +279,8 @@ def auth_proctor():
     cursor.execute(q_chk_pass, {"proctor_id": email_entered})
     password = cursor.fetchone()[0]
     if pass_entered == password:
-        return jsonify({"error": False})
+        token = jwt.encode({"user": email_entered, "exp": datetime.datetime.now() + datetime.datetime.timedelta(days=14)}, app_config['SECRET_KEY'])
+        return jsonify({"error": False, "token": token.decode('UTF-8')})
     else:
         return jsonify({"error": True})
 
@@ -286,12 +292,10 @@ def manage_faculty():
     fact_details_q = "SELECT name,faculty_id,department_name,REPLACE(REPLACE(faculty_id, '@', '__at__'), '.', '__dot__') from Faculty f,Department d where f.department_id=d.department_id"
     cursor.execute(fact_details_q)
     faculties = cursor.fetchall()
-    print(faculties)
     dept_abbr_q = "SELECT distinct department_id from Department"
     cursor.execute(dept_abbr_q)
     dept_abbr = cursor.fetchall()
     dept_abbr = [d[0] for d in dept_abbr]
-    print(dept_abbr)
 
     return render_template(
         "manage_faculty.html", faculties=faculties, dept_abbr=dept_abbr
@@ -299,6 +303,7 @@ def manage_faculty():
 
 
 @app.route("/admin/logout")
+@login_required
 def logout():
     logout_user()
     return redirect("/admin/login")
@@ -315,15 +320,12 @@ def admin():
     cursor.execute(q_proctor_ids)
     proctor_ids = cursor.fetchall()
     proctor_ids = [a[0] for a in proctor_ids]
-    print(fne)
     faculty_data = [(fname, fid, fid in proctor_ids) for fname, fid in fne]
-    print(faculty_data)
-    print(proctor_ids)
-
     return render_template("admin_page.html", faculty_data=faculty_data)
 
 
 @app.route("/app/get_students", methods=["GET"])
+@token_required
 def get_students():
     faculty_id = request.args.get("faculty_id")
     fetch_students_q = "SELECT student_usn, CONCAT(first_name, ' ', middle_name,' ', last_name), department_id from Student WHERE student_usn IN (SELECT student_usn from Proctor where proctor_id=%(proctor_id)s)"
@@ -341,6 +343,7 @@ def get_students():
 
 
 @app.route("/app/get_all_students", methods=["GET"])
+@token_required
 def get_all_students():
     fetch_all_usns = "SELECT student_usn from Student"
     cursor = conn.cursor()
@@ -351,6 +354,7 @@ def get_all_students():
 
 
 @app.route("/app/remove_student_proctor", methods=["GET"])
+@token_required
 def remove_student_proctor():
     student_usn = request.args.get("student_usn")
     cursor = conn.cursor()
@@ -360,10 +364,12 @@ def remove_student_proctor():
         conn.commit()
         return jsonify({"error": False})
     except:
+        conn.rollback()
         return jsonify({"error": True})
 
 
 @app.route("/app/get_student_details", methods=["GET"])
+@token_required
 def get_student_details():
     student_usn = request.args.get("student_usn")
     cursor = conn.cursor()
@@ -382,13 +388,13 @@ def get_student_details():
             "phone": int(res[6]),
             "dept_id": res[7],
         }
-        print(res)
         return jsonify(res)
     else:
         return jsonify({"error": True})
 
 
 @app.route("/app/add_student_proctor", methods=["GET"])
+@token_required
 def add_student_proctor():
     proctor_id = request.args.get("faculty_id")
     student_usn = request.args.get("student_usn")
@@ -401,7 +407,7 @@ def add_student_proctor():
         conn.commit()
         return jsonify({"error": False})
     except Exception as e:
-        print(e)
+        conn.rollback()
         return jsonify({"error": True})
 
 
@@ -430,30 +436,8 @@ def check_proctor_cred():
         return jsonify({"error": True})
 
 
-@app.route("/app/check_student_cred", methods=["GET"])
-def check_student_cred():
-    student_usn = request.args.get("student_usn")
-    dob = request.args.get("dob")
-    fetch_dob = "SELECT dob from Student where student_usn=%(student_usn)s"
-    cursor = conn.cursor()
-    cursor.execute(fetch_dob, {"student_usn": student_usn})
-    res = cursor.fetchall()
-
-    if len(res) == 0:
-        return jsonify({"error": True})
-    else:
-        dob_in_db = res[0][0]
-        if dob_in_db == dob:
-            cursor.execute(
-                "SELECT first_name from Student where student_usn=%(student_usn)s",
-                {"student_usn": student_usn},
-            )
-            name = cursor.fetchone()[0]
-            return jsonify({"error": False, "username": name})
-        return jsonify({"error": True})
-
-
 @app.route("/app/fetch_parent_details", methods=["GET"])
+@token_required
 def get_parent_contact():
     student_usn = request.args.get("student_usn")
 
@@ -482,6 +466,7 @@ def get_parent_contact():
 
 
 @app.route("/app/store_proctor_details", methods=["POST"])
+@token_required
 def store_proctor_details():
     data = request.data
     if data is not None:
@@ -507,7 +492,7 @@ def store_proctor_details():
                 )
             conn.commit()
         except Exception as e:
-            print(e)
+            conn.rollback()
             return({'error':True})
 
         return jsonify({"error": False})
@@ -516,6 +501,7 @@ def store_proctor_details():
 
 
 @app.route("/app/fetch_reports", methods=["GET"])
+@token_required
 def fetch_reports():
     proctor_id = request.args.get("proctor_id")
     if proctor_id is None:
@@ -540,6 +526,7 @@ def fetch_reports():
     return jsonify(result)
 
 @app.route('/admin/view_proctor_students', methods=['GET'])
+@login_required
 def view_proctor_students():
     cursor = conn.cursor()
     cursor.execute("SELECT DISTINCT proctor_id FROM Proctor")
@@ -554,44 +541,52 @@ def view_proctor_students():
         pname = cursor.fetchone()[0]
         pid = replace_last_occurence(p, "@", "__at__")
         pid = replace_last_occurence(pid, ".", "__dot__")
-        print(pid)
         res.append([pname, pid, student_list])
     return render_template('admin_proctor_student_list.html', student_list=res)
 
-app.config[
-    "SECRET_KEY"
-] = '\x94\x94d"\xf0/\xa4j\xa7\xc7\xa2;\x1aOEp\xb3\xf1\xc3%v+W\xdd'
+app.config["SECRET_KEY"] = credentials.SECRET_KEY
+
 login_manager = LoginManager()
 login_manager.init_app(app)
 
-conn = get_db_connection()
-cursor = conn.cursor()
-with open("queries/create_query.sql") as query_file:
-    q = query_file.read()
-    cursor.execute(q)
-conn.commit()
+try:
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    with open("queries/create_query.sql") as query_file:
+        q = query_file.read()
+        cursor.execute(q)
+    conn.commit()
+except:
+    conn.rollback()
 
-admin_pass_q = "SELECT admin_password FROM ADMIN"
-cursor.execute(admin_pass_q)
-admin_password = cursor.fetchone()[0]
+admin_password = credentials.ADMIN_PASSWORD
 
-users = {"admin": {"password": admin_password}}
-# delete_reports = "DELETE FROM Reports"
-# delete_remarks = "DELETE From Remarks"
-# cursor.execute(delete_reports)
-# cursor.execute(delete_remarks)
-# conn.commit()
+# Admin password is MD5 hashed
+admin_user = {"admin": {"password": admin_password}}
 
 class User(UserMixin):
     pass
-
 
 @login_manager.user_loader
 def user_loader(user_id):
     if user_id not in users:
         return
-
     user = User()
     user.id = user_id
     return user
-# app.run()
+
+
+# Decorator for JWT authentication
+def token_required(function):
+    @wraps(function)
+    def decorated(*args, **kwargs):
+        token = request.headers['Authorization']
+        try:
+            data = jwt.decode(token, app_config['SECRET_KEY'])
+        except jwt.exceptions.ExpiredSignatureError:
+            return jsonify({'error': True, 
+                'message':'Your session has been invalidated/has expired. Please login again'}), 403
+        except Exception:
+            return jsonify({'error': True, 'message':'Token is invalid'}), 403
+        return function(*args, **kwargs)
+ 
